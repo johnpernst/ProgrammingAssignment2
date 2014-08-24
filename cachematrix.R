@@ -1,52 +1,48 @@
 ## JHopkins Coursera R Programming: Assignment 2
 ##
-## Two functions to calculate the inverse of a matrix.
-## The first 'makeCacheMatrix' creates a list of functions for calling and 
-## caching a matrix and its inverse.
-## The second 'cacheSolve' generates the inverse of any invertible matrix 
-## entered by calling the list of functions from 'makeCacheMatrix'.
-#
+## Two functions to calculate the inverse of a matrix using cached values 
+## when available.
 #
 #  Function name: makeCacheMatrix
 #  
-#  Description
+#  Description: creates a list of functions for calling and caching a matrix 
+#   and its inverse.
 #
 #  Arguments:
 #    new.m: a matrix specified by user or passed from the function 'cacheSolve'
 #
 #  Returns:
-#    A list containing 4 functions for getting and storing and matrix and its
-#    inverse.
+#    A list containing 4 functions for getting and storing a matrix and its
+#    inverse from a cache of matrices and inverses.
 #
 makeCacheMatrix <- function(new.m = matrix()) {
         force(new.m)
-        mat.new <- matrix()  # initialize temporary matrix
-        cache.inv <- NULL  # initialize solution for inverse of matrix
-        cache <- matrix()  #initialize list of matrices
+        cache.inv <- list()  # initialize solution for inverse of matrix
+        cachem <- list()  #initialize list of matrices 'cachem'
         cache.count <- 0   #initialize counter for no. of matrices in 'cache'
+        mat.list <- logical() # initialize subset factor for selecting matrix
         set <- function(new.m) {
                 cache.count <- cache.count + 1  # increment counter
-                cache[[cache.count]] <<- new.m  # store new matrix in list
+                cachem[[cache.count]] <- new.m  # store new matrix in list
                 cache.count <<- cache.count  #save counter value to parent envt
         }
         get <- function(cache.count) {
-                mat.list <- sapply(cache, function(t) identical(t, new.m))
+                mat.list <- sapply(cachem, function(t) identical(t, new.m))
                 #     create logical vector of any identical matrix in cache
                 mat.list <<- mat.list  # set mat.list vector in parent envt
         }
-        set.inv <- function(mat.new) cache.inv[[cache.count]] <- solve(mat.new)
+        set.inv <- function(new.m) cache.inv[[cache.count]] <- solve(new.m)
         get.inv <- function(cache.count) {
-                mat.list <- sapply(cache, function(t) identical(t, new.m))
+                mat.list <- sapply(cachem, function(t) identical(t, new.m))
                 #     create logical vector of any identical matrix in cache
                 mat.list <<- mat.list  # set mat.list vector in parent envt
                 subset(cache.inv, mat.list, c(1,2))  # return inverse for match
         }
-        list(set = set, get = get, set.inv = set.inv, get.inv = get.inv)
-        mat.new <<- mat.new  # save matrix to parent envionment
+        mat.list <<- mat.list  # save selection vector to parent environment
         cache.count <<- cache.count  #save counter to parent environment
+        list(set = set, get = get, set.inv = set.inv, get.inv = get.inv)
 }
 #  end of first function
-#
 #
 ## Second Function name: cacheSolve
 #
@@ -62,8 +58,7 @@ makeCacheMatrix <- function(new.m = matrix()) {
 #  Returns:
 #    Inverse solution for matrix entered
 #
-cacheSolve <- function(new.m=matrix(), mat.list=vector()) {
-        cache <<- list()  #initialize cache in parent environment
+cacheSolve <- function(x=list()) {
         if(all(mat.list) == FALSE) {
                 makeCacheMatrix$set()  # if no match, add matrix to cache
                 message("generating new inverse solution")
